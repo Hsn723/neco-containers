@@ -51,7 +51,7 @@ func (m *rookTopologySpreadConstraintsMutator) Handle(ctx context.Context, req a
 		return admission.Allowed("not corresponding to Rook's OSD pod")
 	}
 
-	if pod.Spec.TopologySpreadConstraints != nil {
+	if len(pod.Spec.TopologySpreadConstraints) != 0 {
 		return admission.Allowed("topologySpreadConstraints resource already exists")
 	}
 
@@ -60,7 +60,11 @@ func (m *rookTopologySpreadConstraintsMutator) Handle(ctx context.Context, req a
 	constraint.TopologyKey = "topology.rook.io/rack"
 	constraint.LabelSelector.MatchLabels["app"] = rookCephOSDAppName
 
-	pod.Spec.TopologySpreadConstraints
+	pod.Spec.TopologySpreadConstraints = []corev1.TopologySpreadConstraint{constraint}
 
+	mutatedPod, err := json.Marshal(pod)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, err)
+	}
 	return admission.PatchResponseFromRaw(req.Object.Raw, mutatedPod)
 }
