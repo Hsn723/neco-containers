@@ -42,6 +42,7 @@ func run(addr string, port int) error {
 	dec, _ := admission.NewDecoder(scheme)
 	wh := mgr.GetWebhookServer()
 	wh.Register("/validate-projectcalico-org-networkpolicy", hooks.NewCalicoNetworkPolicyValidator(mgr.GetClient(), dec, 1000))
+	wh.Register("/mutate-rook-topologyspreadconstraints", hooks.NewRookTopologySpreadConstraintsMutator())
 
 	// +kubebuilder:scaffold:builder
 
